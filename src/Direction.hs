@@ -10,28 +10,31 @@ Portability : POSIX
 -}
 module Direction where
 
-import Control.Lens
+{-|
+Directions on a cartesian plane (up, down, left, right). These are absolute
+direction.
+-}
+data Direction = ToUp | ToRight | ToDown | ToLeft deriving (Eq, Ord, Enum, Show)
 
-data Direction = ToUp
-               | ToRight
-               | ToDown
-               | ToLeft
-               deriving (Eq, Ord, Enum, Show)
-
+{-|
+Turn right from a direction.
+-}
 turnRight :: Direction -> Direction
-turnRight ToUp    = ToRight
-turnRight ToRight = ToDown
-turnRight ToDown  = ToLeft
-turnRight ToLeft  = ToUp
+turnRight ToLeft = ToUp
+turnRight d = succ d
 
+{-|
+Turn left from a direction.
+-}
 turnLeft :: Direction -> Direction
-turnLeft ToUp    = ToLeft
-turnLeft ToRight = ToUp
-turnLeft ToDown  = ToRight
-turnLeft ToLeft  = ToDown
+turnLeft ToUp = ToLeft
+turnLeft d = pred d
 
+{-|
+Go forward given a `Direction`
+-}
 forward :: Direction -> (Int, Int) -> (Int, Int)
-forward ToUp c    = c & _2 %~ (+) 1
-forward ToRight c = c & _1 %~ (+) 1
-forward ToDown c  = c & _2 %~ (-) 1
-forward ToLeft c  = c & _1 %~ (-) 1
+forward ToUp    (x, y) = (x, y + 1)
+forward ToRight (x, y) = (x + 1, y)
+forward ToDown  (x, y) = (x, y - 1)
+forward ToLeft  (x, y) = (x - 1, y)

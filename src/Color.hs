@@ -9,10 +9,14 @@ Portability : POSIX
 -}
 module Color where
 
-data Color = Black
-           | White
-           deriving (Eq, Ord, Enum, Show)
+{-|
+Two colors: `Black` and `White`
+-}
+data Color = Black | White deriving (Eq, Ord, Enum, Show)
 
+{-|
+Invert a `Color`: `White` becomes `Black` and `Black` becomes `White`.
+-}
 invert :: Color -> Color
 invert White = Black
 invert Black = White

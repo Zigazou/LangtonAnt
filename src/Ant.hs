@@ -16,6 +16,9 @@ import Control.Monad.State.Lazy
 
 import Direction
 
+{-|
+An `Ant` stands at a position, pointing to a direction.
+-}
 data Ant = Ant
     { _pos :: (Int, Int)
     , _dir :: Direction
@@ -23,8 +26,11 @@ data Ant = Ant
 
 makeLenses ''Ant
 
+{-|
+Change direction of an `Ant` and move forward.
+-}
 move :: Monad m => (Direction -> Direction) -> StateT Ant m ()
 move turn = do
-    dir %= turn
-    direction <- use dir
+    direction <- dir <%= turn
     pos %= forward direction
+

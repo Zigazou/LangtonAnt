@@ -9,57 +9,88 @@ Stability   : experimental
 Portability : POSIX
 
 -}
-module Grid where
+module Grid (Grid, newGrid, iteration, toAscii) where
 
 import Control.Lens
 import Control.Monad.State.Lazy
 import qualified Data.Map as Map
-import Data.List
-import Data.Ord
 
-import Color
-import Ant
-import Direction
+import Color (Color(Black, White), invert)
+import Ant (Ant(Ant), pos, move)
+import Direction (turnLeft, turnRight, Direction(ToUp))
 
+type Boundaries = (Int, Int, Int, Int)
+type Position = (Int, Int)
+
+{-|
+A `Grid` contains a serie of cells, an `Ant` and keeps track of boundaries.
+-}
 data Grid = Grid
-    { _grid :: Map.Map (Int, Int) Color
+    { _grid :: Map.Map Position Color
     , _ant :: Ant
-    , _bounds :: (Int, Int, Int, Int)
+    , _bounds :: Boundaries
     } deriving (Show)
 
 makeLenses ''Grid
 
+{-|
+Generate a new `Grid`, placing the `Ant` at its center pointing upward.
+-}
 newGrid :: Grid
-newGrid = Grid
-    { _grid = Map.singleton (0, 0) White
-    , _ant = Ant { _pos = (0, 0), _dir = ToUp }
-    , _bounds = (0, 0, 0, 0)
-    }
+newGrid = Grid (Map.singleton (0, 0) White) (Ant (0, 0) ToUp) (0, 0, 0, 0)
 
-updateBounds :: Monad m => (Int, Int) -> StateT (Int, Int, Int, Int) m ()
-updateBounds (x, y) = do
-    _1 %= min x
-    _2 %= max x
-    _3 %= min y
-    _4 %= max y
+{-|
+Given a position, expands boundaries to fit it in.
+-}
+updateBounds :: Position -> Boundaries -> Boundaries
+updateBounds (x, y) (minx, maxx, miny, maxy) =
+    (min x minx, max x maxx, min y miny, max y maxy)
 
-getColorAt :: Monad m => (Int, Int) -> StateT Grid m Color
+{-|
+Get the color at a position in a `Grid`. If the position does not yet exist,
+it is created `White` and the boundaries are updated. It is needed because the
+`Grid` keeps only track of cells that have been visited by the `Ant`.
+-}
+getColorAt :: Monad m => Position -> StateT Grid m Color
 getColorAt position = do
     colorM <- use (grid.at position)
 
     case colorM of
-         Nothing -> grid %= Map.insert position White >> return White
+         Nothing -> do
+            grid %= Map.insert position White
+            bounds %= updateBounds position
+            return White
          Just c -> return c
 
+{-|
+An iteration makes the `Ant` move according to the Langton rules:
+
+- if the `Ant` is on a `Black` cell, it turns left and move,
+- if the `Ant` is on a `White` cell, it turns right and move.
+
+The cell being leaved sees its color inverted (black becomes white and white
+becomes black).
+-}
 iteration :: Monad m => StateT Grid m ()
 iteration = do
     position <- use (ant.pos)
     color <- getColorAt position
 
-    zoom bounds (updateBounds position)
-
     zoom ant $ case color of
-                    White -> move turnRight
-                    Black -> move turnLeft
+                    White -> move turnLeft
+                    Black -> move turnRight
 
     grid.at position._Just %= invert
+
+{-|
+Generates a list of `String` representing the `Grid` with Ascii characters
+(more precisely UTF-8 characters).
+-}
+toAscii :: Grid -> [String]
+toAscii g = [ [ colorAt (x, y) | x <- [minx .. maxx] ] | y <- [miny .. maxy] ]
+    where (minx, maxx, miny, maxy) = g^.bounds
+          colorAt xy = case g^.grid.at xy of
+                            Nothing -> ' '
+                            Just White -> '⋅'
+                            Just Black -> '█'
+
