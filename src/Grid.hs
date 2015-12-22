@@ -16,8 +16,8 @@ import Control.Monad.State.Lazy
 import qualified Data.Map as Map
 
 import Color (Color(Black, White), invert)
-import Ant (Ant(Ant), pos, move)
-import Direction (turnLeft, turnRight, Direction(ToUp))
+import Ant (Ant, pos, move)
+import Direction (turnLeft, turnRight)
 
 type Boundaries = (Int, Int, Int, Int)
 type Position = (Int, Int)
@@ -27,7 +27,6 @@ A `Grid` contains a serie of cells, an `Ant` and keeps track of boundaries.
 -}
 data Grid = Grid
     { _grid :: Map.Map Position Color
-    , _ant :: Ant
     , _bounds :: Boundaries
     } deriving (Show)
 
@@ -37,7 +36,7 @@ makeLenses ''Grid
 Generate a new `Grid`, placing the `Ant` at its center pointing upward.
 -}
 newGrid :: Grid
-newGrid = Grid (Map.singleton (0, 0) White) (Ant (0, 0) ToUp) (0, 0, 0, 0)
+newGrid = Grid (Map.singleton (0, 0) White) (0, 0, 0, 0)
 
 {-|
 Given a position, expands boundaries to fit it in.
@@ -71,16 +70,15 @@ An iteration makes the `Ant` move according to the Langton rules:
 The cell being leaved sees its color inverted (black becomes white and white
 becomes black).
 -}
-iteration :: Monad m => StateT Grid m ()
-iteration = do
-    position <- use (ant.pos)
+iteration :: Monad m => Ant -> StateT Grid m Ant
+iteration ant = do
+    let position = ant^.pos
     color <- getColorAt position
-
-    zoom ant $ case color of
-                    White -> move turnLeft
-                    Black -> move turnRight
-
     grid.at position._Just %= invert
+
+    return $ case color of
+                  White -> move turnLeft ant
+                  Black -> move turnRight ant
 
 {-|
 Generates a list of `String` representing the `Grid` with Ascii characters

@@ -12,7 +12,6 @@ Portability : POSIX
 module Ant where
 
 import Control.Lens
-import Control.Monad.State.Lazy
 
 import Direction
 
@@ -29,8 +28,7 @@ makeLenses ''Ant
 {-|
 Change direction of an `Ant` and move forward.
 -}
-move :: Monad m => (Direction -> Direction) -> StateT Ant m ()
-move turn = do
-    direction <- dir <%= turn
-    pos %= forward direction
-
+move :: (Direction -> Direction) -> Ant -> Ant
+move turn (Ant p d) = Ant { _pos = forward (turn d) p
+                          , _dir = turn d
+                          }
