@@ -13,7 +13,7 @@ module Grid (Grid, newGrid, iteration, toAscii) where
 
 import Control.Lens
 import Control.Monad.State.Lazy
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 
 import Color (Color(Black, White), invert)
 import Ant (Ant, pos, move)
@@ -88,7 +88,7 @@ toAscii :: Grid -> [String]
 toAscii g = [ [ colorAt (x, y) | x <- [minx .. maxx] ] | y <- [miny .. maxy] ]
     where (minx, maxx, miny, maxy) = g^.bounds
           colorAt xy = case g^.grid.at xy of
-                            Nothing -> ' '
-                            Just White -> '⋅'
+                            Nothing -> '⋅'
+                            Just White -> ' '
                             Just Black -> '█'
 

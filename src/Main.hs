@@ -17,15 +17,23 @@ import Grid
 import Ant
 import Direction
 
-loopState :: Int -> Ant -> Grid -> (Ant, Grid)
-loopState 0 ant grid = (ant, grid)
-loopState n ant grid = loopState (pred n) ant' grid'
+{-|
+Move an `Ant` a number of time on a `Grid`, changing `Color` of cells.
+`grid'` is forced strict via `seq` otherwise lazy evaluation would consume too
+much memory for nothing.
+-}
+antWalk :: Int -> Ant -> Grid -> (Ant, Grid)
+antWalk 0 ant grid = (ant, grid)
+antWalk n ant grid = grid' `seq` antWalk (pred n) ant' grid'
     where (ant', grid') = runState (iteration ant) grid
 
-loopLoopState :: Int -> Int -> Ant -> Grid -> (Ant, Grid)
-loopLoopState 0 _ ant grid = (ant, grid)
-loopLoopState rep count ant grid = loopLoopState (pred rep) count ant grid'
-    where (_, grid') = loopState count ant grid
+{-|
+Repeat an ant walk on the same `Grid`, making it evolve.
+-}
+repeatAntWalk :: Int -> Int -> Ant -> Grid -> (Ant, Grid)
+repeatAntWalk 0 _ ant grid = (ant, grid)
+repeatAntWalk rep count ant grid = repeatAntWalk (pred rep) count ant grid'
+    where (_, grid') = antWalk count ant grid
 
 main :: IO ()
 main = do
@@ -35,6 +43,6 @@ main = do
         count = read scount
         rep = read srep
 
-    let (_, grid') = loopLoopState rep count ant newGrid
+    let (_, grid') = repeatAntWalk rep count ant newGrid
 
     putStr $ unlines $ reverse $ toAscii grid'
