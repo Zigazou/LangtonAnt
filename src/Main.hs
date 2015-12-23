@@ -12,6 +12,7 @@ module Main where
 
 import System.Environment
 import Control.Monad.State.Lazy
+import Control.Lens
 
 import Grid
 import Ant
@@ -45,4 +46,4 @@ main = do
 
     let (_, grid') = repeatAntWalk rep count ant newGrid
 
-    putStr $ unlines $ reverse $ toAscii grid'
+    putStr $ unlines $ reverse $ toAscii (grid'^.bounds) grid'

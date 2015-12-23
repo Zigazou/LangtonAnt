@@ -9,7 +9,7 @@ Stability   : experimental
 Portability : POSIX
 
 -}
-module Grid (Grid, newGrid, iteration, toAscii) where
+module Grid (Grid, bounds, newGrid, iteration, toAscii) where
 
 import Control.Lens
 import Control.Monad.State.Lazy
@@ -84,10 +84,10 @@ iteration ant = do
 Generates a list of `String` representing the `Grid` with Ascii characters
 (more precisely UTF-8 characters).
 -}
-toAscii :: Grid -> [String]
-toAscii g = [ [ colorAt (x, y) | x <- [minx .. maxx] ] | y <- [miny .. maxy] ]
-    where (minx, maxx, miny, maxy) = g^.bounds
-          colorAt xy = case g^.grid.at xy of
+toAscii :: Boundaries -> Grid -> [String]
+toAscii (minx, maxx, miny, maxy) g =
+    [ [ colorAt (x, y) | x <- [minx .. maxx] ] | y <- [miny .. maxy] ]
+    where colorAt xy = case g^.grid.at xy of
                             Nothing -> '⋅'
                             Just White -> ' '
                             Just Black -> '█'
