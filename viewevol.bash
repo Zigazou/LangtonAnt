@@ -4,5 +4,5 @@ for f in evol/evol*.txt
 do
     clear
     cat $f
-    sleep 0.1
+    #sleep 0.1
 done

@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE Rank2Types #-}
 {- |
 Module      : Ant
 Description : An Ant
@@ -18,9 +19,9 @@ import Direction
 {-|
 An `Ant` stands at a position, pointing to a direction.
 -}
-data Ant = Ant
+data Ant a = Ant
     { _pos :: (Int, Int)
-    , _dir :: Direction
+    , _dir :: a
     } deriving (Show)
 
 makeLenses ''Ant
@@ -28,7 +29,7 @@ makeLenses ''Ant
 {-|
 Change direction of an `Ant` and move forward.
 -}
-move :: (Direction -> Direction) -> Ant -> Ant
+move :: Direction a => (a -> a) -> Ant a -> Ant a
 move turn (Ant p d) = Ant { _pos = forward (turn d) p
                           , _dir = turn d
                           }

@@ -17,7 +17,7 @@ import qualified Data.Map.Strict as Map
 
 import Color (Color(Black, White), invert)
 import Ant (Ant, pos, move)
-import Direction (turnLeft, turnRight)
+import Direction (Direction, turnLeft, turnRight)
 
 type Boundaries = (Int, Int, Int, Int)
 type Position = (Int, Int)
@@ -70,7 +70,7 @@ An iteration makes the `Ant` move according to the Langton rules:
 The cell being leaved sees its color inverted (black becomes white and white
 becomes black).
 -}
-iteration :: Monad m => Ant -> StateT Grid m Ant
+iteration :: (Monad m, Direction a) => Ant a -> StateT Grid m (Ant a)
 iteration ant = do
     let position = ant^.pos
     color <- getColorAt position
@@ -91,4 +91,3 @@ toAscii (minx, maxx, miny, maxy) g =
                             Nothing -> '⋅'
                             Just White -> ' '
                             Just Black -> '█'
-
